@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TeslaLyrics - Auto-Sync</title>
+    <style>
+        :root {
+            --bg: #0d0d0f;
+            --surface: #1c1c1e;
+            --border: #3a3a3c;
+            --text: #f5f5f7;
+            --text-dim: #8e8e93;
+            --accent: #3e95ff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- MODAL --- */
+        .modal {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border);
+        }
+        .modal-content h2 { margin-bottom: 20px; color: var(--accent); }
+        .modal-content ol { margin: 20px 0; padding-left: 20px; line-height: 1.8; color: var(--text-dim); }
+        .modal-content code { background: var(--bg); padding: 4px 8px; border-radius: 6px; color: var(--accent); font-size: 0.9rem; }
+        .modal-content input { width: 100%; margin-bottom: 20px; }
+        .modal-content a { color: var(--accent); text-decoration: none; font-weight: 600; }
+
+        /* --- HEADER --- */
+        header {
+            padding: 20px 40px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+        #track-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #track-title { font-size: 1.3rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #track-artist { font-size: 1rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .controls { display: flex; gap: 12px; }
+
+        input, button {
+            padding: 14px 24px;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            outline: none;
+            font-family: inherit;
+        }
+
+        input { background: var(--bg); color: var(--text); }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s;
+            white-space: nowrap;
+        }
+
+        button:active { transform: scale(0.95); }
+        button.secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+
+        /* --- PROGRESS BAR --- */
+        #progress-bar {
+            height: 4px;
+            background: var(--border);
+            width: 100%;
+        }
+        #progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
+        /* --- MAIN LYRICS VIEW --- */
+        main { flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        
+        #lyrics-container {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 40px;
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+
+        .lyric-line {
+            font-size: 2.5rem;
+            line-height: 1.6;
+            color: var(--text-dim);
+            transition: color 0.3s, transform 0.3s;
+            padding: 10px 0;
+        }
+
+        .lyric-line.active {
+            color: var(--text);
+            font-weight: 700;
+            transform: scale(1.02);
+        }
+
+        .status-msg { text-align: center; color: var(--text-dim); font-size: 1.5rem; margin-top: 20%; }
+
+        /* --- DRIVE MODE --- */
+        #drive-mode {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #000;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+        }
+
+        #drive-mode.active { display: flex; }
+
+        #drive-lyrics-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #drive-lyrics {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .drive-line {
+            font-size: 5vw; 
+            font-weight: 700;
+            line-height: 1.4;
+            padding: 20px 0;
+            color: #333;
+            transition: color 0.4s, transform 0.4s, opacity 0.4s;
+        }
+
+        .drive-line.active {
+            color: #fff;
+            transform: scale(1.05);
+            text-shadow: 0 0 30px rgba(62, 149, 255, 0.4);
+        }
+
+        .drive-line.past, .drive-line.future { opacity: 0.3; }
+
+        #drive-controls {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            background: linear-gradient(to top, #000, transparent);
+        }
+
+        #drive-controls button {
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SETUP MODAL -->
+    <div id="setup-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>⚡ Connect to Spotify</h2>
+            <p>To auto-detect your music, you need a free Spotify Client ID.</p>
+            <ol>
+                <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank">Spotify Developer Dashboard</a> and log in.</li>
+                <li>Click <strong>Create App</strong>. Name it anything.</li>
+                <li>Set the <strong>Redirect URI</strong> to: <br><code id="redirect-uri-display"></code></li>
+                <li>Save, go to Settings, and copy your <strong>Client ID</strong>.</li>
+            </ol>
+            <input type="text" id="client-id-input" placeholder="Paste Client ID here">
+            <button onclick="saveClientId()" style="width:100%;">Save & Connect to Spotify</button>
+        </div>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="app" style="display:none;">
+        <header>
+            <div class="logo">⚡ TeslaLyrics</div>
+            <div id="track-info">
+                <span id="track-title">Waiting for music...</span>
+                <span id="track-artist">Play a song on your Spotify app</span>
+            </div>
+            <div class="controls">
+                <button id="drive-btn" onclick="toggleDriveMode()">🚗 Drive Mode</button>
+                <button class="secondary" onclick="logout()">Logout</button>
+            </div>
+        </header>
+        <div id="progress-bar"><div id="progress-fill"></div></div>
+        
+        <main>
+            <div id="lyrics-container">
+                <div id="lyrics-scroll">
+                    <p class="status-msg">Play a song on your Spotify app to see lyrics here.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- DRIVE MODE -->
+    <div id="drive-mode">
+        <div id="drive-lyrics-container">
+            <div id="drive-lyrics"></div>
+        </div>
+        <div id="drive-controls">
+            <button class="secondary" onclick="toggleDriveMode()">✕ Exit Drive Mode</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const redirectUri = window.location.origin + window.location.pathname;
+        const scope = 'user-read-currently-playing user-read-playback-state';
+        
+        let clientId = sessionStorage.getItem('client_id');
+        let accessToken = sessionStorage.getItem('access_token');
+        let refreshTokenVal = sessionStorage.getItem('refresh_token');
+        
+        let currentTrackId = null;
+        let lyricsData = [];
+        let apiProgress = 0;
+        let lastApiUpdate = 0;
+        let isPlaying = false;
+
+        // --- INITIALIZATION ---
+        window.addEventListener('load', () => {
+            document.getElementById('redirect-uri-display').textContent = redirectUri;
+            
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+
+            if (code) {
+                exchangeCodeForToken(code);
+            } else if (accessToken) {
+                startApp();
+            } else {
+                document.getElementById('setup-modal').style.display = 'flex';
+            }
+        });
+
+        // --- SPOTIFY PKCE OAUTH FLOW ---
+        function saveClientId() {
+            const id = document.getElementById('client-id-input').value.trim();
+            if (!id) return alert("Please enter a Client ID");
+            sessionStorage.setItem('client_id', id);
+            clientId = id;
+            initiateLogin();
+        }
+
+        async function initiateLogin() {
+            const codeVerifier = generateRandomString(64);
+            const hashed = await sha256(codeVerifier);
+            const codeChallenge = base64urlencode(hashed);
+
+            sessionStorage.setItem('code_verifier', codeVerifier);
+
+            const args = new URLSearchParams({
+                response_type: 'code',
+                client_id: clientId,
+                scope: scope,
+                redirect_uri: redirectUri,
+                code_challenge_method: 'S256',
+                code_challenge: codeChallenge
+            });
+
+            window.location = 'https://accounts.spotify.com/authorize?' + args.toString();
+        }
+
+        async function exchangeCodeForToken(code) {
+            const codeVerifier = sessionStorage.getItem('code_verifier');
+            const body = new URLSearchParams({
+                grant_type: 'authorization_code',
+                code: code,
+                redirect_uri: redirectUri,
+                client_id: clientId,
+                code_verifier: codeVerifier
+            });
+
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                });
+                const data = await response.json();
+                
+                if (data.access_token) {
+                    sessionStorage.setItem('access_token', data.access_token);
+                    sessionStorage.setItem('refresh_token', data.refresh_token);
+                    accessToken = data.access_token;
+                    refreshTokenVal = data.refresh_token;
+                    window.history.replaceState({}, document.title, ".");
+                    startApp();
+                } else {
+                    alert("Login failed. Check your Client ID and Redirect URI.");
+                    logout();
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Network error during login. Ensure this site is hosted on HTTPS.");
+            }
+        }
+
+        async function refreshAccessToken() {
+            if (!refreshTokenVal) return logout();
+            const body = new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: refreshTokenVal,
+                client_id: clientId
+            });
+
+            const response = await fetch('https://accounts.spotify.com/api/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            });
+            const data = await response.json();
+            if (data.access_token) {
+                sessionStorage.setItem('access_token', data.access_token);
+                accessToken = data.access_token;
+            } else {
+                logout();
+            }
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.reload();
+        }
+
+        // --- APP LOGIC ---
+        function startApp() {
+            document.getElementById('setup-modal').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            
+            pollPlayer(); // Initial check
+            setInterval(pollPlayer, 5000); // Check for track changes every 5s
+            requestAnimationFrame(uiLoop); // 60fps local UI updates
+        }
+
+        async function pollPlayer() {
+            try {
+                const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+                    headers: { 'Authorization': 'Bearer ' + accessToken }
+                });
+
+                if (res.status === 401) {
+                    await refreshAccessToken();
+                    return;
+                }
+
+                if (res.status === 204) return; // No track playing
+
+                const data = await res.json();
+                if (data && data.item) {
+                    const trackId = data.item.id;
+                    isPlaying = data.is_playing;
+                    apiProgress = data.progress_ms;
+                    lastApiUpdate = Date.now();
+
+                    if (trackId !== currentTrackId) {
+                        currentTrackId = trackId;
+                        onTrackChange(data.item);
+                    }
+                    
+                    document.getElementById('track-title').textContent = data.item.name;
+                    document.getElementById('track-artist').textContent = data.item.artists.map(a => a.name).join(', ');
+                }
+            } catch (e) {
+                console.error("Polling error", e);
+            }
+        }
+
+        function getCurrentPosition() {
+            if (!isPlaying) return apiProgress;
+            return apiProgress + (Date.now() - lastApiUpdate);
+        }
+
+        async function onTrackChange(track) {
+            const title = track.name;
+            const artist = track.artists.map(a => a.name).join(', ');
+            
+            document.getElementById('lyrics-scroll').innerHTML = '<p class="status-msg">Fetching lyrics...</p>';
+            document.getElementById('drive-lyrics').innerHTML = '<p class="status-msg">Fetching lyrics...</p>';
+
+            try {
+                const res = await fetch(`https://lrclib.net/api/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`);
+                const data = await res.json();
+                
+                if (data.length > 0 && data[0].syncedLyrics) {
+                    lyricsData = parseLRC(data[0].syncedLyrics);
+                    renderLyrics();
+                } else {
+                    document.getElementById('lyrics-scroll').innerHTML = '<p class="status-msg">No synced lyrics found for this track.</p>';
+                    document.getElementById('drive-lyrics').innerHTML = '<p class="status-msg">No synced lyrics found.</p>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        // --- LYRICS PARSING & RENDERING ---
+        function parseLRC(lrcText) {
+            const lines = lrcText.split('\n');
+            const parsed = [];
+            const regex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]\s*(.*)/;
+
+            lines.forEach(line => {
+                const match = line.match(regex);
+                if (match) {
+                    const min = parseInt(match[1]);
+                    const sec = parseInt(match[2]);
+                    const ms = parseInt(match[3].padEnd(3, '0'));
+                    const time = (min * 60000) + (sec * 1000) + ms;
+                    const text = match[4].trim();
+                    if (text) parsed.push({ time, text });
+                }
+            });
+            return parsed;
+        }
+
+        function renderLyrics() {
+            const miniContainer = document.getElementById('lyrics-scroll');
+            const driveContainer = document.getElementById('drive-lyrics');
+            
+            miniContainer.innerHTML = '';
+            driveContainer.innerHTML = '';
+
+            lyricsData.forEach((line, index) => {
+                const miniLine = document.createElement('div');
+                miniLine.className = 'lyric-line';
+                miniLine.textContent = line.text;
+                miniLine.dataset.index = index;
+                miniContainer.appendChild(miniLine);
+
+                const driveLine = document.createElement('div');
+                driveLine.className = 'drive-line future';
+                driveLine.textContent = line.text;
+                driveLine.dataset.index = index;
+                driveContainer.appendChild(driveLine);
+            });
+        }
+
+        // --- 60FPS UI UPDATE LOOP ---
+        function uiLoop() {
+            const pos = getCurrentPosition();
+            updateLyricsHighlight(pos);
+            updateProgressBar(pos);
+            updateDriveScroll();
+            requestAnimationFrame(uiLoop);
+        }
+
+        function updateLyricsHighlight(pos) {
+            if (lyricsData.length === 0) return;
+
+            let activeIndex = 0;
+            for (let i = 0; i < lyricsData.length; i++) {
+                if (pos >= lyricsData[i].time) activeIndex = i;
+                else break;
+            }
+
+            const miniLines = document.querySelectorAll('.lyric-line');
+            miniLines.forEach((el, i) => {
+                el.classList.toggle('active', i === activeIndex);
+            });
+
+            const driveLines = document.querySelectorAll('.drive-line');
+            driveLines.forEach((el, i) => {
+                el.classList.remove('active', 'past', 'future');
+                if (i === activeIndex) el.classList.add('active');
+                else if (i < activeIndex) el.classList.add('past');
+                else el.classList.add('future');
+            });
+
+            // Auto-scroll mini view
+            if (miniLines[activeIndex]) {
+                miniLines[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function updateProgressBar(pos) {
+            const fill = document.getElementById('progress-fill');
+            // We don't know the total duration from the currently-playing endpoint without another call, 
+            // so we'll just animate it based on a typical song length or hide it if unknown.
+            // For simplicity, we'll skip the progress bar % since we don't have track duration in this specific API response.
+        }
+
+        function updateDriveScroll() {
+            if (!document.getElementById('drive-mode').classList.contains('active')) return;
+            const container = document.getElementById('drive-lyrics-container');
+            const lyricsEl = document.getElementById('drive-lyrics');
+            const lines = document.querySelectorAll('.drive-line');
+            
+            let activeLine = null;
+            lines.forEach(l => { if (l.classList.contains('active')) activeLine = l; });
+
+            if (activeLine) {
+                const containerHeight = container.clientHeight;
+                const lineTop = activeLine.offsetTop;
+                const lineHeight = activeLine.clientHeight;
+                const targetY = (containerHeight / 2) - (lineTop + lineHeight / 2);
+                
+                lyricsEl.style.transform = `translateY(${targetY}px)`;
+            }
+        }
+
+        function toggleDriveMode() {
+            document.getElementById('drive-mode').classList.toggle('active');
+        }
+
+        // --- CRYPTO HELPERS FOR PKCE ---
+        function generateRandomString(length) {
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const values = crypto.getRandomValues(new Uint8Array(length));
+            return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+        }
+
+        async function sha256(plain) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(plain);
+            return window.crypto.subtle.digest('SHA-256', data);
+        }
+
+        function base64urlencode(input) {
+            let str = '';
+            const bytes = new Uint8Array(input);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) str += String.fromCharCode(bytes[i]);
+            return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+    </script>
+</body>
+</html>
