@@ -12,6 +12,9 @@
             --text: #f5f5f7;
             --text-dim: #8e8e93;
             --accent: #3e95ff;
+            --green: #30d158;
+            --orange: #ff9f0a;
+            --red: #ff453a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -26,10 +29,14 @@
             flex-direction: column;
         }
 
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
         /* --- MODAL --- */
         .modal {
             position: fixed; inset: 0;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             display: flex; align-items: center; justify-content: center;
             z-index: 1000;
         }
@@ -37,27 +44,30 @@
             background: var(--surface);
             padding: 40px;
             border-radius: 20px;
-            max-width: 500px;
+            max-width: 520px;
             width: 90%;
             border: 1px solid var(--border);
         }
-        .modal-content h2 { margin-bottom: 20px; color: var(--accent); }
-        .modal-content ol { margin: 20px 0; padding-left: 20px; line-height: 1.8; color: var(--text-dim); }
-        .modal-content code { background: var(--bg); padding: 4px 8px; border-radius: 6px; color: var(--accent); font-size: 0.9rem; }
-        .modal-content input { width: 100%; margin-bottom: 20px; }
+        .modal-content h2 { margin-bottom: 16px; color: var(--accent); }
+        .modal-content p { color: var(--text-dim); line-height: 1.6; margin-bottom: 12px; }
+        .modal-content ol { margin: 16px 0; padding-left: 20px; line-height: 2; color: var(--text-dim); }
+        .modal-content code { background: var(--bg); padding: 4px 10px; border-radius: 6px; color: var(--accent); font-size: 0.85rem; word-break: break-all; }
+        .modal-content input { width: 100%; margin: 12px 0 20px; }
         .modal-content a { color: var(--accent); text-decoration: none; font-weight: 600; }
+        .modal-content a:hover { text-decoration: underline; }
 
         /* --- HEADER --- */
         header {
-            padding: 20px 40px;
+            padding: 16px 32px;
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             display: flex;
-            gap: 20px;
+            gap: 16px;
             align-items: center;
+            flex-shrink: 0;
         }
 
-        .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
 
         #track-info {
             flex: 1;
@@ -65,16 +75,17 @@
             flex-direction: column;
             justify-content: center;
             overflow: hidden;
+            min-width: 0;
         }
 
-        #track-title { font-size: 1.3rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #track-artist { font-size: 1rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #track-title { font-size: 1.2rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #track-artist { font-size: 0.95rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .controls { display: flex; gap: 12px; }
+        .controls { display: flex; gap: 10px; flex-shrink: 0; }
 
         input, button {
             padding: 14px 24px;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             border-radius: 12px;
             border: 1px solid var(--border);
             outline: none;
@@ -82,6 +93,7 @@
         }
 
         input { background: var(--bg); color: var(--text); }
+        input:focus { border-color: var(--accent); }
 
         button {
             background: var(--accent);
@@ -92,49 +104,69 @@
             transition: transform 0.1s;
             white-space: nowrap;
         }
-
         button:active { transform: scale(0.95); }
         button.secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+        button.small { padding: 10px 18px; font-size: 0.95rem; }
 
         /* --- PROGRESS BAR --- */
-        #progress-bar {
-            height: 4px;
-            background: var(--border);
-            width: 100%;
-        }
-        #progress-fill {
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.1s linear;
-        }
+        #progress-bar { height: 3px; background: var(--border); width: 100%; flex-shrink: 0; }
+        #progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.15s linear; }
 
         /* --- MAIN LYRICS VIEW --- */
-        main { flex: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-        
+        main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
         #lyrics-container {
-            width: 100%;
-            height: 100%;
+            flex: 1;
             overflow-y: auto;
-            padding: 40px;
-            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+            padding: 30px 40px;
+            mask-image: linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
         }
 
         .lyric-line {
-            font-size: 2.5rem;
-            line-height: 1.6;
+            font-size: 2.2rem;
+            line-height: 1.5;
             color: var(--text-dim);
-            transition: color 0.3s, transform 0.3s;
-            padding: 10px 0;
+            transition: color 0.3s, transform 0.3s, font-weight 0.3s;
+            padding: 8px 0;
+            cursor: pointer;
         }
-
+        .lyric-line:hover { color: var(--text); }
         .lyric-line.active {
-            color: var(--text);
+            color: var(--accent);
             font-weight: 700;
-            transform: scale(1.02);
+            transform: scale(1.03);
         }
 
-        .status-msg { text-align: center; color: var(--text-dim); font-size: 1.5rem; margin-top: 20%; }
+        .status-msg { text-align: center; color: var(--text-dim); font-size: 1.3rem; margin-top: 15%; line-height: 1.8; }
+        .status-msg .icon { font-size: 3rem; display: block; margin-bottom: 16px; }
+
+        /* --- MANUAL SEARCH BAR --- */
+        #manual-search {
+            padding: 12px 32px;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            display: none;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        #manual-search.visible { display: flex; }
+        #manual-search input { flex: 1; padding: 12px 18px; font-size: 1rem; }
+        #manual-search button { padding: 12px 24px; font-size: 1rem; }
+        #manual-search .label { color: var(--text-dim); font-size: 0.9rem; white-space: nowrap; }
+
+        /* --- BADGE --- */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+        .badge.synced { background: rgba(48,209,88,0.15); color: var(--green); }
+        .badge.unsynced { background: rgba(255,159,10,0.15); color: var(--orange); }
 
         /* --- DRIVE MODE --- */
         #drive-mode {
@@ -145,7 +177,6 @@
             display: none;
             flex-direction: column;
         }
-
         #drive-mode.active { display: flex; }
 
         #drive-lyrics-container {
@@ -165,33 +196,34 @@
         }
 
         .drive-line {
-            font-size: 5vw; 
+            font-size: 5vw;
             font-weight: 700;
             line-height: 1.4;
             padding: 20px 0;
-            color: #333;
+            color: #2a2a2a;
             transition: color 0.4s, transform 0.4s, opacity 0.4s;
         }
-
         .drive-line.active {
             color: #fff;
             transform: scale(1.05);
-            text-shadow: 0 0 30px rgba(62, 149, 255, 0.4);
+            text-shadow: 0 0 40px rgba(62, 149, 255, 0.5);
         }
-
-        .drive-line.past, .drive-line.future { opacity: 0.3; }
+        .drive-line.past { opacity: 0.25; }
+        .drive-line.future { opacity: 0.25; }
 
         #drive-controls {
             padding: 30px;
             display: flex;
             justify-content: center;
-            background: linear-gradient(to top, #000, transparent);
+            background: linear-gradient(to top, #000 60%, transparent);
         }
+        #drive-controls button { padding: 20px 60px; font-size: 1.4rem; border-radius: 50px; }
 
-        #drive-controls button {
-            padding: 20px 60px;
-            font-size: 1.5rem;
-            border-radius: 50px;
+        #drive-track-info {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-dim);
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -201,20 +233,20 @@
     <div id="setup-modal" class="modal" style="display:none;">
         <div class="modal-content">
             <h2>⚡ Connect to Spotify</h2>
-            <p>To auto-detect your music, you need a free Spotify Client ID.</p>
+            <p>To auto-detect your music, you need a free Spotify Client ID. This takes about 2 minutes.</p>
             <ol>
                 <li>Go to <a href="https://developer.spotify.com/dashboard" target="_blank">Spotify Developer Dashboard</a> and log in.</li>
-                <li>Click <strong>Create App</strong>. Name it anything.</li>
-                <li>Set the <strong>Redirect URI</strong> to: <br><code id="redirect-uri-display"></code></li>
-                <li>Save, go to Settings, and copy your <strong>Client ID</strong>.</li>
+                <li>Click <strong>Create App</strong>. Name it anything (e.g. "TeslaLyrics").</li>
+                <li>Set the <strong>Redirect URI</strong> to:<br><code id="redirect-uri-display"></code></li>
+                <li>Save, go to <strong>Settings</strong>, and copy your <strong>Client ID</strong>.</li>
             </ol>
-            <input type="text" id="client-id-input" placeholder="Paste Client ID here">
+            <input type="text" id="client-id-input" placeholder="Paste your Client ID here">
             <button onclick="saveClientId()" style="width:100%;">Save & Connect to Spotify</button>
         </div>
     </div>
 
     <!-- MAIN APP -->
-    <div id="app" style="display:none;">
+    <div id="app" style="display:none; flex-direction:column; height:100vh;">
         <header>
             <div class="logo">⚡ TeslaLyrics</div>
             <div id="track-info">
@@ -223,22 +255,31 @@
             </div>
             <div class="controls">
                 <button id="drive-btn" onclick="toggleDriveMode()">🚗 Drive Mode</button>
-                <button class="secondary" onclick="logout()">Logout</button>
+                <button class="secondary small" onclick="logout()">Logout</button>
             </div>
         </header>
         <div id="progress-bar"><div id="progress-fill"></div></div>
-        
+
         <main>
             <div id="lyrics-container">
                 <div id="lyrics-scroll">
-                    <p class="status-msg">Play a song on your Spotify app to see lyrics here.</p>
+                    <p class="status-msg"><span class="icon">🎵</span>Play a song on your Spotify app<br>to see lyrics here.</p>
                 </div>
             </div>
         </main>
+
+        <!-- MANUAL SEARCH (shown when auto-fetch fails) -->
+        <div id="manual-search">
+            <span class="label">Manual search:</span>
+            <input type="text" id="manual-track" placeholder="Song title">
+            <input type="text" id="manual-artist" placeholder="Artist">
+            <button onclick="manualSearch()">Search</button>
+        </div>
     </div>
 
     <!-- DRIVE MODE -->
     <div id="drive-mode">
+        <div id="drive-track-info"></div>
         <div id="drive-lyrics-container">
             <div id="drive-lyrics"></div>
         </div>
@@ -248,25 +289,32 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
+        // =============================================
+        // CONFIGURATION
+        // =============================================
         const redirectUri = window.location.origin + window.location.pathname;
         const scope = 'user-read-currently-playing user-read-playback-state';
-        
+
         let clientId = sessionStorage.getItem('client_id');
         let accessToken = sessionStorage.getItem('access_token');
         let refreshTokenVal = sessionStorage.getItem('refresh_token');
-        
+
         let currentTrackId = null;
         let lyricsData = [];
+        let isSynced = false;
         let apiProgress = 0;
         let lastApiUpdate = 0;
         let isPlaying = false;
         let trackDuration = 0;
+        let currentTrackName = '';
+        let currentArtistName = '';
 
-        // --- INITIALIZATION ---
+        // =============================================
+        // INITIALIZATION
+        // =============================================
         window.addEventListener('load', () => {
             document.getElementById('redirect-uri-display').textContent = redirectUri;
-            
+
             const params = new URLSearchParams(window.location.search);
             const code = params.get('code');
 
@@ -279,7 +327,9 @@
             }
         });
 
-        // --- SPOTIFY PKCE OAUTH FLOW ---
+        // =============================================
+        // SPOTIFY PKCE OAUTH FLOW
+        // =============================================
         function saveClientId() {
             const id = document.getElementById('client-id-input').value.trim();
             if (!id) return alert("Please enter a Client ID");
@@ -292,7 +342,6 @@
             const codeVerifier = generateRandomString(64);
             const hashed = await sha256(codeVerifier);
             const codeChallenge = base64urlencode(hashed);
-
             sessionStorage.setItem('code_verifier', codeVerifier);
 
             const args = new URLSearchParams({
@@ -324,16 +373,16 @@
                     body: body.toString()
                 });
                 const data = await response.json();
-                
+
                 if (data.access_token) {
                     sessionStorage.setItem('access_token', data.access_token);
                     sessionStorage.setItem('refresh_token', data.refresh_token);
                     accessToken = data.access_token;
                     refreshTokenVal = data.refresh_token;
-                    window.history.replaceState({}, document.title, ".");
+                    window.history.replaceState({}, document.title, window.location.pathname);
                     startApp();
                 } else {
-                    alert("Login failed. Check your Client ID and Redirect URI.");
+                    alert("Login failed: " + (data.error_description || "Unknown error"));
                     logout();
                 }
             } catch (e) {
@@ -350,17 +399,25 @@
                 client_id: clientId
             });
 
-            const response = await fetch('https://accounts.spotify.com/api/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            });
-            const data = await response.json();
-            if (data.access_token) {
-                sessionStorage.setItem('access_token', data.access_token);
-                accessToken = data.access_token;
-            } else {
-                logout();
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: body.toString()
+                });
+                const data = await response.json();
+                if (data.access_token) {
+                    sessionStorage.setItem('access_token', data.access_token);
+                    accessToken = data.access_token;
+                    if (data.refresh_token) {
+                        sessionStorage.setItem('refresh_token', data.refresh_token);
+                        refreshTokenVal = data.refresh_token;
+                    }
+                } else {
+                    logout();
+                }
+            } catch (e) {
+                console.error("Refresh failed", e);
             }
         }
 
@@ -369,13 +426,15 @@
             window.location.reload();
         }
 
-        // --- APP LOGIC ---
+        // =============================================
+        // APP LOGIC
+        // =============================================
         function startApp() {
             document.getElementById('setup-modal').style.display = 'none';
             document.getElementById('app').style.display = 'flex';
-            
+
             pollPlayer();
-            setInterval(pollPlayer, 5000);
+            setInterval(pollPlayer, 3000);
             requestAnimationFrame(uiLoop);
         }
 
@@ -385,12 +444,8 @@
                     headers: { 'Authorization': 'Bearer ' + accessToken }
                 });
 
-                if (res.status === 401) {
-                    await refreshAccessToken();
-                    return;
-                }
-
-                if (res.status === 204) return;
+                if (res.status === 401) { await refreshAccessToken(); return; }
+                if (res.status === 204 || res.status === 200 && !res.ok) return;
 
                 const data = await res.json();
                 if (data && data.item) {
@@ -400,13 +455,18 @@
                     lastApiUpdate = Date.now();
                     trackDuration = data.item.duration_ms;
 
+                    const trackName = data.item.name;
+                    const artistName = data.item.artists.map(a => a.name).join(', ');
+
+                    document.getElementById('track-title').textContent = trackName;
+                    document.getElementById('track-artist').textContent = artistName;
+
                     if (trackId !== currentTrackId) {
                         currentTrackId = trackId;
+                        currentTrackName = trackName;
+                        currentArtistName = artistName;
                         onTrackChange(data.item);
                     }
-                    
-                    document.getElementById('track-title').textContent = data.item.name;
-                    document.getElementById('track-artist').textContent = data.item.artists.map(a => a.name).join(', ');
                 }
             } catch (e) {
                 console.error("Polling error", e);
@@ -418,30 +478,150 @@
             return apiProgress + (Date.now() - lastApiUpdate);
         }
 
-        async function onTrackChange(track) {
-            const title = track.name;
-            const artist = track.artists.map(a => a.name).join(', ');
-            
-            document.getElementById('lyrics-scroll').innerHTML = '<p class="status-msg">Fetching lyrics...</p>';
-            document.getElementById('drive-lyrics').innerHTML = '<p class="status-msg">Fetching lyrics...</p>';
+        // =============================================
+        // TRACK NAME CLEANING
+        // =============================================
+        function cleanTrackName(name) {
+            return name
+                // Remove featured artists
+                .replace(/\s*\(?\s*(?:feat\.?|featuring|ft\.?)\s+[^)]+\)?/gi, '')
+                // Remove remastered tags
+                .replace(/\s*[-–]\s*Remastered\s*\d*/gi, '')
+                .replace(/\s*\(Remastered\s*\d*\)/gi, '')
+                // Remove edition/version tags
+                .replace(/\s*\((?:Deluxe|Special|Expanded|Anniversary|International|Bonus|Limited)\s*(?:Edition|Version)?\)/gi, '')
+                // Remove radio edit, single version, etc.
+                .replace(/\s*\((?:Radio\s+Edit|Single\s+Version|Album\s+Version|Original\s+Mix|Explicit|Clean)\)/gi, '')
+                // Remove trailing " - Single" or " - EP"
+                .replace(/\s*-\s*(?:Single|EP)$/gi, '')
+                // Remove year in parens at end
+                .replace(/\s*\(\d{4}\)\s*$/, '')
+                .trim();
+        }
 
-            try {
-                const res = await fetch(`https://lrclib.net/api/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`);
-                const data = await res.json();
-                
-                if (data.length > 0 && data[0].syncedLyrics) {
-                    lyricsData = parseLRC(data[0].syncedLyrics);
-                    renderLyrics();
-                } else {
-                    document.getElementById('lyrics-scroll').innerHTML = '<p class="status-msg">No synced lyrics found for this track.</p>';
-                    document.getElementById('drive-lyrics').innerHTML = '<p class="status-msg">No synced lyrics found.</p>';
+        function cleanArtistName(name) {
+            // Take only the first artist if multiple
+            return name.split(',')[0].trim();
+        }
+
+        // =============================================
+        // LYRICS FETCHING WITH MULTIPLE FALLBACKS
+        // =============================================
+        async function onTrackChange(track) {
+            const rawTitle = track.name;
+            const rawArtist = track.artists.map(a => a.name).join(', ');
+            const albumName = track.album ? track.album.name : '';
+            const durationSec = Math.round(track.duration_ms / 1000);
+
+            showStatus('🔍', 'Searching for lyrics...');
+            document.getElementById('manual-search').classList.remove('visible');
+
+            const cleanedTitle = cleanTrackName(rawTitle);
+            const primaryArtist = cleanArtistName(rawArtist);
+
+            // Build a list of search strategies to try in order
+            const strategies = [
+                { label: 'Exact match (get)', fn: () => tryGet(rawTitle, primaryArtist, albumName, durationSec) },
+                { label: 'Exact match cleaned', fn: () => tryGet(cleanedTitle, primaryArtist, albumName, durationSec) },
+                { label: 'Search full names', fn: () => trySearch(rawTitle, rawArtist) },
+                { label: 'Search cleaned title', fn: () => trySearch(cleanedTitle, primaryArtist) },
+                { label: 'Search title only', fn: () => trySearch(rawTitle, '') },
+                { label: 'Search cleaned title only', fn: () => trySearch(cleanedTitle, '') },
+            ];
+
+            let result = null;
+
+            for (const strategy of strategies) {
+                try {
+                    result = await strategy.fn();
+                    if (result) {
+                        console.log(`✓ Found lyrics via: ${strategy.label}`);
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(`✗ Strategy "${strategy.label}" failed:`, e);
                 }
-            } catch (e) {
-                console.error(e);
+            }
+
+            if (result) {
+                processLyricsResult(result, rawTitle, rawArtist);
+            } else {
+                showStatus('😕', `No lyrics found for<br><strong>"${rawTitle}"</strong> by ${rawArtist}<br><br>Try a manual search below:`);
+                document.getElementById('manual-search').classList.add('visible');
+                document.getElementById('manual-track').value = cleanedTitle;
+                document.getElementById('manual-artist').value = primaryArtist;
             }
         }
 
-        // --- LYRICS PARSING & RENDERING ---
+        async function tryGet(trackName, artistName, albumName, duration) {
+            const params = new URLSearchParams();
+            params.set('track_name', trackName);
+            params.set('artist_name', artistName);
+            if (albumName) params.set('album_name', albumName);
+            params.set('duration', duration);
+
+            const res = await fetch(`https://lrclib.net/api/get?${params.toString()}`);
+            if (!res.ok) return null;
+            return await res.json();
+        }
+
+        async function trySearch(trackName, artistName) {
+            const params = new URLSearchParams();
+            if (trackName) params.set('track_name', trackName);
+            if (artistName) params.set('artist_name', artistName);
+
+            const res = await fetch(`https://lrclib.net/api/search?${params.toString()}`);
+            if (!res.ok) return null;
+            const data = await res.json();
+            if (data.length === 0) return null;
+
+            // Prefer results with synced lyrics
+            const synced = data.find(d => d.syncedLyrics);
+            if (synced) return synced;
+
+            // Fall back to first result with plain lyrics
+            const plain = data.find(d => d.plainLyrics);
+            return plain || data[0];
+        }
+
+        async function manualSearch() {
+            const track = document.getElementById('manual-track').value.trim();
+            const artist = document.getElementById('manual-artist').value.trim();
+            if (!track) return;
+
+            showStatus('🔍', 'Searching...');
+
+            try {
+                const result = await trySearch(track, artist);
+                if (result) {
+                    processLyricsResult(result, track, artist);
+                    document.getElementById('manual-search').classList.remove('visible');
+                } else {
+                    showStatus('😕', `Still no results for "${track}" by ${artist}.<br>Try different spelling or just the song title.`);
+                }
+            } catch (e) {
+                showStatus('❌', 'Search error. Check your connection.');
+            }
+        }
+
+        function processLyricsResult(result, title, artist) {
+            if (result.syncedLyrics) {
+                lyricsData = parseLRC(result.syncedLyrics);
+                isSynced = true;
+                renderLyrics('synced');
+            } else if (result.plainLyrics) {
+                lyricsData = parsePlainLyrics(result.plainLyrics);
+                isSynced = false;
+                renderLyrics('unsynced');
+            } else {
+                showStatus('😕', `Found the track but no lyrics text available.`);
+                document.getElementById('manual-search').classList.add('visible');
+            }
+        }
+
+        // =============================================
+        // LYRICS PARSING
+        // =============================================
         function parseLRC(lrcText) {
             const lines = lrcText.split('\n');
             const parsed = [];
@@ -461,10 +641,34 @@
             return parsed;
         }
 
-        function renderLyrics() {
+        function parsePlainLyrics(text) {
+            return text.split('\n').map((line, i) => ({
+                time: i * 3000, // Space them out evenly for scrolling
+                text: line.trim()
+            })).filter(l => l.text);
+        }
+
+        function showStatus(icon, message) {
+            const html = `<p class="status-msg"><span class="icon">${icon}</span>${message}</p>`;
+            document.getElementById('lyrics-scroll').innerHTML = html;
+            document.getElementById('drive-lyrics').innerHTML = html;
+            lyricsData = [];
+        }
+
+        // =============================================
+        // RENDERING
+        // =============================================
+        function renderLyrics(type) {
             const miniContainer = document.getElementById('lyrics-scroll');
             const driveContainer = document.getElementById('drive-lyrics');
-            
+
+            const badge = type === 'synced'
+                ? '<span class="badge synced">⏱ SYNCED</span>'
+                : '<span class="badge unsynced">PLAIN TEXT</span>';
+
+            document.getElementById('track-title').innerHTML =
+                document.getElementById('track-title').textContent + badge;
+
             miniContainer.innerHTML = '';
             driveContainer.innerHTML = '';
 
@@ -481,9 +685,14 @@
                 driveLine.dataset.index = index;
                 driveContainer.appendChild(driveLine);
             });
+
+            document.getElementById('drive-track-info').textContent =
+                `${currentTrackName} — ${currentArtistName}`;
         }
 
-        // --- 60FPS UI UPDATE LOOP ---
+        // =============================================
+        // 60FPS UI UPDATE LOOP
+        // =============================================
         function uiLoop() {
             const pos = getCurrentPosition();
             updateLyricsHighlight(pos);
@@ -522,8 +731,7 @@
         function updateProgressBar(pos) {
             const fill = document.getElementById('progress-fill');
             if (trackDuration > 0) {
-                const percent = (pos / trackDuration) * 100;
-                fill.style.width = percent + '%';
+                fill.style.width = Math.min((pos / trackDuration) * 100, 100) + '%';
             }
         }
 
@@ -532,7 +740,7 @@
             const container = document.getElementById('drive-lyrics-container');
             const lyricsEl = document.getElementById('drive-lyrics');
             const lines = document.querySelectorAll('.drive-line');
-            
+
             let activeLine = null;
             lines.forEach(l => { if (l.classList.contains('active')) activeLine = l; });
 
@@ -541,7 +749,6 @@
                 const lineTop = activeLine.offsetTop;
                 const lineHeight = activeLine.clientHeight;
                 const targetY = (containerHeight / 2) - (lineTop + lineHeight / 2);
-                
                 lyricsEl.style.transform = `translateY(${targetY}px)`;
             }
         }
@@ -550,7 +757,9 @@
             document.getElementById('drive-mode').classList.toggle('active');
         }
 
-        // --- CRYPTO HELPERS FOR PKCE ---
+        // =============================================
+        // CRYPTO HELPERS FOR PKCE
+        // =============================================
         function generateRandomString(length) {
             const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             const values = crypto.getRandomValues(new Uint8Array(length));
@@ -566,8 +775,7 @@
         function base64urlencode(input) {
             let str = '';
             const bytes = new Uint8Array(input);
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) str += String.fromCharCode(bytes[i]);
+            for (let i = 0; i < bytes.byteLength; i++) str += String.fromCharCode(bytes[i]);
             return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
     </script>
